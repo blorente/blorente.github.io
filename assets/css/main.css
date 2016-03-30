@@ -1980,14 +1980,29 @@
 			display: none;
 		}
 
-/* Image */
+		/* Image */
+		/** NEW: Profile avatar now is rounded **/
+		.profile_avatar {
+			width: 120px; /* Width and height must have same size */
+			height: 120px; /* Width and height must have same size */
+			overflow: hidden;
+			position: relative;
+			margin-bottom: 25px;
+			display: inline-block;
+			-webkit-border-radius: 100%;
+			-moz-border-radius: 100%;
+			border-radius: 100%;
+		}
+		.profile_avatar img {
+			width: 100%;
+		}
 
-	.image {
-		border-radius: 0.35em;
-		border: 0;
-		display: inline-block;
-		position: relative;
-	}
+		.image {
+			border-radius: 0.35em;
+			border: 0;
+			display: inline-block;
+			position: relative;
+		}
 
 		.image:before {
 			-moz-transition: opacity 0.2s ease-in-out;
