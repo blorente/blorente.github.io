@@ -2462,6 +2462,9 @@
 
 		.work-item .image {
 			margin: 0 0 1.5em 0;
+			height: 16em;
+			overflow: hidden;
+			background-size: cover;
 		}
 
 		.work-item h3 {
