@@ -1333,7 +1333,7 @@
 
 	}
 
-	@media screen and (max-width: 480px) {
+	@media screen and (max-width: 600px) {
 
 		.row > * {
 			padding: 0 0 0 1.5em;
