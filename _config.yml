@@ -9,7 +9,7 @@ safe: true
 
 
 # edit here to achieve your personal greatness
-url: http://username.github.io/
+url: http://blorente.github.io/
 baseurl: /
 title: Borja Lorente
 author: Borja Lorente
@@ -18,7 +18,7 @@ avatar: profile_med.jpg
 email: blorente@ucm.es
 github: blorente
 twitter: BLorenteEs
-linkedin: https://www.linkedin.com/in/borja-lorente-escobar-487b7b120
+linkedin: https://www.linkedin.com/in/blorente
 stackoverflow: username   #e.g: users/2735833/proton1h1
 #Comment out if you don't want disqus
 disqus: username
