@@ -6,7 +6,7 @@ url: antlr4-cpp-cmake.html
 ---
 Not long ago, I had to process a language's syntax for a rather big solo
 project written in C++14 and using CMake 3.6 as the build system
-(check it [here](https://github.com/blorente/naylang)). At the time I had no idea about which tool to use and ANTLR sounded familiar. The las version (ANTLR 4) had a [freshly-made C++ target](http://www.soft-gems.net/index.php/tools/49-the-antlr4-c-target-is-here) merged into the main repo, which generated lexers and parsers in C++11, so I went ahead and spent the weekend integrating it in my project.
+(check it [here](https://github.com/blorente/naylang)). I had no idea about which tool to use at the time, and ANTLR sounded familiar. The last version (ANTLR 4) had a [freshly-made C++ target](http://www.soft-gems.net/index.php/tools/49-the-antlr4-c-target-is-here) merged into the main repo, which generated lexers and parsers in C++11, so I went ahead and spent the weekend integrating it in my project.
 
 This is an account of the trials and conclusions I found.
 
@@ -31,7 +31,7 @@ This is where the hard part comes. In order to use the newly generated classes, 
 
 The next sections illustrate the two easiest ways I found to integrate it into a project. They are not the only ones and they both rely on the `ExternalProject` CMake package, but after testing several other ways these ones were the easiest to me.
 
-**NOTE: Unde Linux, the runtime needs package `uuid-dev`. You can get it under Debian-based distros via `$ sudo apt-get install uuid-dev`**
+**NOTE: Under Linux, the runtime needs package `uuid-dev`. You can get it in Debian-based distros via `$ sudo apt-get install uuid-dev`**
 
 ## Compilation example
 
@@ -42,7 +42,9 @@ Beware: The compilation of the library takes a long time.
 
 ## Basic: ExternalProject with remote
 
-For those unaware, ExternalProject is a neat package from CMake that makes easy to include... well... projects from outside your project. That, combined with a handy file with the `.cmake` extension [included with the runtime](https://github.com/antlr/antlr4/blob/master/runtime/Cpp/cmake/ExternalAntlr4Cpp.cmake). Let's take a moment to explore this magnificent file:
+For those unaware, ExternalProject is a neat package from CMake that makes easy to include... well... projects from outside your project. That, combined with a handy file with the `.cmake` extension [included with the runtime](https://github.com/antlr/antlr4/blob/master/runtime/Cpp/cmake/ExternalAntlr4Cpp.cmake), makes it possible to add ANTLR 4 as a dependency with minimal changes to the project.
+
+Let's take a moment to explore the contents of this magnificent file:
 
 - A great comment introduction explaining what a minimal CMake project should look like to link against `antlr4cpp`.
 - The `ExternalProject_Add` call to add `antlr4cpp` as an external dependency, by downloading it from GitHub and adding a compilation target. It also sets the useful variables `ANTLR4CPP_INCLUDE_DIR` (to include in your project's CMakeLists.txt) and `ANTLR4CPP_LIBS`, the directory where the compiled libraries will be stored.
@@ -127,6 +129,7 @@ test_antlr/
     message(STATUS "Found antlr4cpp libs: ${ANTLR4CPP_LIBS} and includes: ${ANTLR4CPP_INCLUDE_DIRS} ")
 
     # Call macro to add lexer and grammar to your build dependencies.
+    # NOTE: Here, we define "antlrcpptest" as our project's namespace
     antlr4cpp_process_grammar(demo antlrcpptest
       ${CMAKE_CURRENT_SOURCE_DIR}/TLexer.g4
       ${CMAKE_CURRENT_SOURCE_DIR}/TParser.g4)
@@ -203,7 +206,7 @@ If your project uses Travis as a CI service, you might want to know how these ch
 
 - Get the basic stuff, to compile with `gcc`:
 
-  ```yaml
+  ```yml
   language: cpp
   compiler:
   - gcc
@@ -211,7 +214,7 @@ If your project uses Travis as a CI service, you might want to know how these ch
 
 - Update package repositories to get the latest version of `gcc`:
 
-  ```yaml
+  ```yml
   before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update
@@ -219,14 +222,14 @@ If your project uses Travis as a CI service, you might want to know how these ch
 
 - Create a deps folder to store the depenencies:
 
-  ```yaml
+  ```yml
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
   ```
 
 - Obtain the latest copies of CMake and `gcc`:
 
-  ```yaml
+  ```yml
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       CMAKE_URL="https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.tar.gz"
@@ -242,13 +245,13 @@ If your project uses Travis as a CI service, you might want to know how these ch
 
 - Install uuid (required by ANTLR under Linux)
 
-  ```yaml
+  ```yml
   - sudo apt-get install -y uuid-dev
   ```
 
 - And then the regular out-of-source CMake build:
 
-  ```yaml
+  ```yml
   script:
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir build
