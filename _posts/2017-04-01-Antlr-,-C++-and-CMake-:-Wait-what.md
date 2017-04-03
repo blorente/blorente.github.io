@@ -67,7 +67,7 @@ test_antlr/
 |-- CMakeLists.txt
 ```
 
-- Create `main.cpp`. The aim is just to compile agains the runtime and to be able to include the generated Parser and Lexer, so it should be pretty simple:
+- Create `main.cpp`. The aim is just to compile against the runtime and to be able to include the generated Parser and Lexer, so it should be pretty simple:
 
   ```c++
   #include <iostream>
