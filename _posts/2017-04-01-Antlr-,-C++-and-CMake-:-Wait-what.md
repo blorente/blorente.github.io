@@ -58,12 +58,13 @@ test_antlr/
 |-- cmake/
 |---- ExternalAntlr4Cpp.cmake
 |-- thirdparty/
-|---- antlr-4.7-complete.jar
-|-- main.cpp
-|-- CMakeLists.txt
+|---- antlr/
+|------ antlr-4.7-complete.jar
 |-- grammar/
 |---- TLexer.g4
 |---- TParser.g4
+|-- main.cpp
+|-- CMakeLists.txt
 ```
 
 - Create `main.cpp`. The aim is just to compile agains the runtime and to be able to include the generated Parser and Lexer, so it should be pretty simple:
@@ -165,8 +166,9 @@ Here are the steps to get that working:
   ```
   test_antlr/
   |-- thirdparty/
-  |---- antlr-4.7-complete.jar
-  |---- antlr4-master.zip
+  \---- antlr/
+  |------ antlr-4.7-complete.jar
+  |------ antlr4-master.zip
   ```
 
 - Change the `ExternalAntlr4Cpp.cmake` file to include your zip as an URL instead of the Git repository:
