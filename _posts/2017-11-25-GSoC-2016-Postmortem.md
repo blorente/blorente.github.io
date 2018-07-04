@@ -1,5 +1,11 @@
-# Pride and Prejudice
-## Lessons learned from failing to meet every deadline despite 60-hour weeks
+---
+layout: post
+title: "Pride and Prejudice"
+subtitle: "Lessons learned from failing to meet every deadline despite 60-hour weeks"
+date: 2017-04-01
+url: antlr4-cpp-cmake.html
+---
+
 
 ### NOTE: This post was made around mid-August 2016, when the GSoC was about to end but the results were not in yet
 
