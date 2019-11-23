@@ -1,18 +1,49 @@
 ---
-layout: home
+layout: default
+make-smaller-titles: true
 ---
 
-<section id="about">
-	<div class="container">
-	  <div class="avatar">
-		<img class="img-circle" src="{{ site.baseurl }}static/img/{{ site.avatar }}" alt="Responsive image">
-	  </div>
-	  <h3>I'm <strong>{{ site.author }}</strong>, a Software Engineer</h3>
-		<h3>and Programming Language enthusiast.</h3>
-	  <h3>I love all things computer science and maths.</h3>
-	  <h3>Have a look at some of my working <a href="{{ site.url }}/projects.html"> projects</a>,</h3>
-	  <h3>or take a look at my  <a href="https://docs.google.com/document/d/16c1AqpoL8bdENDfkLHqV7Ykf_ou60SZEjEvrPlswfAA/edit?usp=sharing"> CV</a>.</h3>
-	  <h3>Contact me at <a href="http://twitter.com/{{ site.twitter }}">@{{ site.twitter }}</a> or by <a href="mailto:{{ site.email }}">email</a>.</h3>
-	  {% include social.html %}
-	</div>
-</section>
+
+<div class="container-fluid index">
+    <div class="row">
+
+        <div class="col-md-12 main content-panel">
+
+            <div class="gravatar">
+                <img src="{{ site.title_image }}" class="img-circle about-image" height="150" width="150" alt="{{ site.title }}" />
+            </div>
+
+            <h1 class="header author-header" itemprop="headline">{{ site.title }}</h1>
+
+            <div class="author-text">
+                {{ site.title_description }}
+            </div>
+
+            {% include social_links.html %}
+          </div>
+          <div class="col-md-12 main content-panel">
+
+            <div class="articles">
+
+              <h2>Latest Articles</h2>
+
+              <ul>
+                  {% for post in site.posts limit: site.post_limit %}
+
+                      <li>
+                          <a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+                          <small class="hidden-xs">{{ post.date | date: "%B %-d, %Y" }}</small>
+                      </li>
+
+                  {% endfor %}
+                  <li>
+                      <small><i><a href="{{ site.baseurl }}/posts/">more...</a></i></small>
+                  </li>
+              </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
