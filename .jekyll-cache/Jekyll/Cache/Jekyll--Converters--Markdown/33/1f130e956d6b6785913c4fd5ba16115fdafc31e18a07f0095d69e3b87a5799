@@ -1,0 +1,281 @@
+I"*L<p>Not long ago, I had to process a language’s syntax for a rather big solo
+project written in C++14 and using CMake 3.6 as the build system
+(check it <a href="https://github.com/blorente/naylang">here</a>). I had no idea about which tool to use at the time, and ANTLR sounded familiar. The last version (ANTLR 4) had a <a href="http://www.soft-gems.net/index.php/tools/49-the-antlr4-c-target-is-here">freshly-made C++ target</a> merged into the main repo, which generated lexers and parsers in C++11, so I went ahead and spent the weekend integrating it in my project.</p>
+
+<p>This is an account of the trials and conclusions I found.</p>
+
+<h2 id="whats-in-the-package">What’s in the package?</h2>
+
+<p>The ANTLR 4 C++ target needs several things in order to work:</p>
+
+<h3 id="the-antlr-jar-file">The <a href="www.antlr.org/download/antlr-4.7-complete.jar">ANTLR <code class="highlighter-rouge">.jar</code> file</a></h3>
+
+<p>This program is the actual parser generator. It takes ANTLR grammar files as input (such as <code class="highlighter-rouge">MySuperAwesomeLanguage.g4</code>) and, when <a href="https://github.com/antlr/antlr4/blob/master/doc/cpp-target.md">run with the <code class="highlighter-rouge">-Dlanguage=Cpp</code> flag</a>, it creates parser and lexer classes:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ antlr4 -Dlanguage=Cpp MyGrammar.g4
+</code></pre></div></div>
+<p>This will generate files such as <code class="highlighter-rouge">MyGrammarParser.h</code> and <code class="highlighter-rouge">MyGrammarLexer.h</code>. If so specified (e.g. with the flag -visitor), additional classes will be created.</p>
+
+<p>As we will see later, we never actually have to invoke this command by hand.</p>
+
+<h3 id="the-antlr4cpp-runtime">The ANTLR4CPP runtime</h3>
+
+<p>This is where the hard part comes. In order to use the newly generated classes, we need to compile and link them against the runtime, which is obtained from the <a href="https://github.com/antlr/antlr4">main repo</a>. Luckily, the C++ runtime also is built using CMake, which makes the integration at least 20% less painful.</p>
+
+<p>The next sections illustrate the two easiest ways I found to integrate it into a project. They are not the only ones and they both rely on the <code class="highlighter-rouge">ExternalProject</code> CMake package, but after testing several other ways these ones were the easiest to me.</p>
+
+<p><strong>NOTE: Under Linux, the runtime needs package <code class="highlighter-rouge">uuid-dev</code>. You can get it in Debian-based distros via <code class="highlighter-rouge">$ sudo apt-get install uuid-dev</code></strong></p>
+
+<h2 id="compilation-example">Compilation example</h2>
+
+<p>Beware: The compilation of the library takes a long time.</p>
+
+<script type="text/javascript" src="https://asciinema.org/a/4w7s0i71vtt2zki299lt603lo.js" id="asciicast-4w7s0i71vtt2zki299lt603lo" async=""></script>
+
+<h2 id="basic-externalproject-with-remote">Basic: ExternalProject with remote</h2>
+
+<p>For those unaware, ExternalProject is a neat package from CMake that makes easy to include… well… projects from outside your project. That, combined with a handy file with the <code class="highlighter-rouge">.cmake</code> extension <a href="https://github.com/antlr/antlr4/blob/master/runtime/Cpp/cmake/ExternalAntlr4Cpp.cmake">included with the runtime</a>, makes it possible to add ANTLR 4 as a dependency with minimal changes to the project.</p>
+
+<p>Let’s take a moment to explore the contents of this magnificent file:</p>
+
+<ul>
+  <li>A great comment introduction explaining what a minimal CMake project should look like to link against <code class="highlighter-rouge">antlr4cpp</code>.</li>
+  <li>The <code class="highlighter-rouge">ExternalProject_Add</code> call to add <code class="highlighter-rouge">antlr4cpp</code> as an external dependency, by downloading it from GitHub and adding a compilation target. It also sets the useful variables <code class="highlighter-rouge">ANTLR4CPP_INCLUDE_DIR</code> (to include in your project’s CMakeLists.txt) and <code class="highlighter-rouge">ANTLR4CPP_LIBS</code>, the directory where the compiled libraries will be stored.</li>
+  <li>A handy macro that takes care of <strong>generating the Lexer and Parser classes</strong> and adding a compilation target <code class="highlighter-rouge">antlr4cpp_generation_&lt;your_project_namespace&gt;</code> and the handy variable <code class="highlighter-rouge">antlr4cpp_include_dirs_&lt;your_project_namespace&gt;</code> to include in your CMakeLists.txt.</li>
+</ul>
+
+<p>With all this in hand, let’s create a simple project that links against the library:</p>
+
+<ul>
+  <li>Create a folder with the following structure, leaving <code class="highlighter-rouge">main.cpp</code> and <code class="highlighter-rouge">CMakeLists.txt</code> empty. You can get example grammars from  <a href="https://github.com/antlr/antlr4/tree/master/runtime/Cpp/demo">here</a>.
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test_antlr/
+|-- cmake/
+|---- ExternalAntlr4Cpp.cmake
+|-- thirdparty/
+|---- antlr/
+|------ antlr-4.7-complete.jar
+|-- grammar/
+|---- TLexer.g4
+|---- TParser.g4
+|-- main.cpp
+|-- CMakeLists.txt
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Create <code class="highlighter-rouge">main.cpp</code>. The aim is just to compile against the runtime and to be able to include the generated Parser and Lexer, so it should be pretty simple:</p>
+
+    <div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;iostream&gt;
+#include &lt;antlr4-runtime.h&gt;
+#include "TParser.h"
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Hello World"</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Create CMakeLists.txt. This is where the meat of the potato begins, if you get my meaning.</p>
+
+    <ul>
+      <li>
+        <p>First, let’s define some standard CMake targets, as though the library didn’t exist.</p>
+
+        <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMakeLists.txt</span>
+
+<span class="c1"># minimum required CMAKE version</span>
+<span class="nf">CMAKE_MINIMUM_REQUIRED</span><span class="p">(</span>VERSION 3.5<span class="p">)</span>
+
+<span class="c1"># compiler must be 11 or 14</span>
+<span class="nf">SET</span> <span class="p">(</span>CMAKE_CXX_STANDARD 14<span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span>test_antlr main.cpp<span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>Then, we have to include the package and make it discoverable by our project.</p>
+
+        <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMakeLists.txt</span>
+
+<span class="nf">CMAKE_MINIMUM_REQUIRED</span><span class="p">(</span>VERSION 3.5<span class="p">)</span>
+
+<span class="nf">LIST</span><span class="p">(</span> APPEND CMAKE_MODULE_PATH <span class="si">${</span><span class="nv">PROJECT_SOURCE_DIR</span><span class="si">}</span>/cmake <span class="p">)</span>
+<span class="c1"># ...</span>
+<span class="nf">SET</span> <span class="p">(</span>CMAKE_CXX_STANDARD 14<span class="p">)</span>
+
+<span class="c1"># add external build for antlrcpp</span>
+<span class="nb">include</span><span class="p">(</span> ExternalAntlr4Cpp <span class="p">)</span>
+<span class="c1"># ...</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>As a small detail, we have to tell the package where the <code class="highlighter-rouge">.jar</code> file is located.</p>
+
+        <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMakeLists.txt</span>
+
+<span class="c1"># set variable pointing to the antlr tool that supports C++</span>
+<span class="nb">set</span><span class="p">(</span>ANTLR4CPP_JAR_LOCATION <span class="si">${</span><span class="nv">PROJECT_SOURCE_DIR</span><span class="si">}</span>/thirdparty/antlr/antlr-4.7-complete.jar<span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>We can take advantage of those handy variables defined by the package:</p>
+
+        <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMakeLists.txt</span>
+
+<span class="c1"># Include the runtime to compile against</span>
+<span class="nb">include_directories</span><span class="p">(</span> <span class="si">${</span><span class="nv">ANTLR4CPP_INCLUDE_DIRS</span><span class="si">}</span> <span class="p">)</span>
+<span class="nb">link_directories</span><span class="p">(</span> <span class="si">${</span><span class="nv">ANTLR4CPP_LIBS</span><span class="si">}</span> <span class="p">)</span>
+<span class="nb">message</span><span class="p">(</span>STATUS <span class="s2">"Found antlr4cpp libs: </span><span class="si">${</span><span class="nv">ANTLR4CPP_LIBS</span><span class="si">}</span><span class="s2"> and includes: </span><span class="si">${</span><span class="nv">ANTLR4CPP_INCLUDE_DIRS</span><span class="si">}</span><span class="s2"> "</span><span class="p">)</span>
+
+<span class="c1"># Call macro to add lexer and grammar to your build dependencies.</span>
+<span class="c1"># NOTE: Here, we define "antlrcpptest" as our project's namespace</span>
+<span class="nf">antlr4cpp_process_grammar</span><span class="p">(</span>demo antlrcpptest
+  <span class="si">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="si">}</span>/TLexer.g4
+  <span class="si">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="si">}</span>/TParser.g4<span class="p">)</span>
+<span class="c1"># include generated files in project environment</span>
+<span class="nb">include_directories</span><span class="p">(</span><span class="si">${</span><span class="nv">antlr4cpp_include_dirs_antlrcpptest</span><span class="si">}</span><span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>And lastly, we have to change the compilation line to link against the libraries:</p>
+
+        <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># CMakeLists.txt</span>
+
+<span class="c1"># add generated grammar to demo binary target</span>
+<span class="nb">add_executable</span><span class="p">(</span>test_antlr main.cpp <span class="si">${</span><span class="nv">antlr4cpp_src_files_antlrcpptest</span><span class="si">}</span><span class="p">)</span>
+<span class="nb">add_dependencies</span><span class="p">(</span>test_antlr antlr4cpp antlr4cpp_generation_antlrcpptest<span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span>test_antlr antlr4-runtime<span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>Presto! When we try to build our project, it will first download a fresh copy from the repo or pull from it to get the latest changes. Then, it will build the library and generate the parser classes, before building and linking to your project. The complete <code class="highlighter-rouge">CMakeLists.txt</code> file can be found <a href="https://github.com/blorente/antlr-4.7-cpp-cmake-base/blob/master/CMakeLists.txt">here</a> (with a slightly outdated version of the <code class="highlighter-rouge">.jar</code>).</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="optional-externalproject-with-local-copy">Optional: ExternalProject with local copy</h2>
+
+<p>Now I personally don’t like this method, because it already takes long enough to build the runtime, and this would have to download it every time it is freshly built. That can amount to tens of minutes of delay, which when combined with Travis-Ci’ slow build times can make integration a real pain.</p>
+
+<p>One way to alleviate this is to distribute a frozen copy of the runtime along with your project (for example, in a zip file), which would then be unpacked and built locally instead of downloading it. In addition to considerably shortening build times, this has the advantage that we work with a stable version of the library, and it will not change from install to install (something surprisingly difficult these days).</p>
+
+<p>Here are the steps to get that working:</p>
+
+<ul>
+  <li>
+    <p>Download a copy of the <a href="https://github.com/antlr/anlr4">ANTLR 4 repo</a>.</p>
+  </li>
+  <li>
+    <p>Place it wherever you’d like. I placed it alongside the <code class="highlighter-rouge">.jar</code>:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test_antlr/
+|-- thirdparty/
+\---- antlr/
+|------ antlr-4.7-complete.jar
+|------ antlr4-master.zip
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Change the <code class="highlighter-rouge">ExternalAntlr4Cpp.cmake</code> file to include your zip as an URL instead of the Git repository:</p>
+
+    <div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># ExternalAntlr4Cpp.cmake</span>
+
+<span class="c1"># Add definitions for the local repository</span>
+<span class="nb">set</span><span class="p">(</span>ANTLR4CPP_LOCAL_ROOT <span class="si">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="si">}</span>/locals/antlr4cpp<span class="p">)</span>
+<span class="nf">SET</span><span class="p">(</span>ANTLR4CPP_LOCAL_REPO <span class="si">${</span><span class="nv">PROJECT_SOURCE_DIR</span><span class="si">}</span>/thirdparty/antlr/antlr4-master.zip<span class="p">)</span>
+
+<span class="c1"># Make the following changes to the _Add rule</span>
+<span class="nf">ExternalProject_ADD</span><span class="p">(</span>
+  <span class="c1">#--External-project-name------</span>
+  antlr4cpp
+  <span class="c1"># ...</span>
+  <span class="c1">#--Core-directories-----------</span>
+  PREFIX             <span class="si">${</span><span class="nv">ANTLR4CPP_LOCAL_ROOT</span><span class="si">}</span>
+  <span class="c1">#--Download step--------------</span>
+  URL                 <span class="si">${</span><span class="nv">ANTLR4CPP_LOCAL_REPO</span><span class="si">}</span>
+  <span class="c1"># Comment these out</span>
+  <span class="c1"># GIT_REPOSITORY     ${ANTLR4CPP_EXTERNAL_REPO}</span>
+  <span class="c1"># GIT_TAG          ${ANTLR4CPP_EXTERNAL_TAG}</span>
+  <span class="c1"># ...</span>
+  <span class="c1"># And this</span>
+  <span class="c1"># UPDATE_COMMAND     ${GIT_EXECUTABLE} pull</span>
+  <span class="c1"># ...</span>
+  <span class="c1"># INSTALL_COMMAND    ""</span>
+<span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>And that’s it! Simple enough right? We didn’t even have to touch <code class="highlighter-rouge">CMakeLists.txt</code>!</p>
+
+<h2 id="just-for-funzies-travis-ci-integration">Just for funzies: Travis-CI integration</h2>
+
+<p>If your project uses Travis as a CI service, you might want to know how these changes affect to your <code class="highlighter-rouge">.travis.yml</code> file. Well, as a small bonus, here’s how to configure Travis to build and run your project with ANTLR:</p>
+
+<ul>
+  <li>
+    <p>Get the basic stuff, to compile with <code class="highlighter-rouge">gcc</code>:</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">language</span><span class="pi">:</span> <span class="s">cpp</span>
+<span class="na">compiler</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">gcc</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Update package repositories to get the latest version of <code class="highlighter-rouge">gcc</code>:</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">before_install</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y</span>
+<span class="pi">-</span> <span class="s">sudo apt-get update</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Create a deps folder to store the depenencies:</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="s">DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"</span>
+<span class="pi">-</span> <span class="s">mkdir -p ${DEPS_DIR} &amp;&amp; cd ${DEPS_DIR}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Obtain the latest copies of CMake and <code class="highlighter-rouge">gcc</code>:</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="pi">|</span>
+  <span class="s">if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then</span>
+    <span class="s">CMAKE_URL="https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.tar.gz"</span>
+    <span class="s">mkdir -p cmake &amp;&amp; travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake</span>
+    <span class="s">export PATH=${DEPS_DIR}/cmake/bin:${PATH}</span>
+  <span class="s">else</span>
+    <span class="s">brew upgrade cmake || brew install cmake</span>
+  <span class="s">fi</span>
+<span class="pi">-</span> <span class="s">cmake --version</span>
+<span class="pi">-</span> <span class="s">if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-6; fi</span>
+<span class="pi">-</span> <span class="s">if [ "$CXX" = "g++" ]; then export CXX="g++-6" CC="gcc-6"; fi</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Install uuid (required by ANTLR under Linux)</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="s">sudo apt-get install -y uuid-dev</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>And then the regular out-of-source CMake build:</p>
+
+    <div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">script</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="s">cd ${TRAVIS_BUILD_DIR}</span>
+<span class="pi">-</span> <span class="s">mkdir build</span>
+<span class="pi">-</span> <span class="s">cd build</span>
+<span class="pi">-</span> <span class="s">cmake -G "Unix Makefiles" ..</span>
+<span class="pi">-</span> <span class="s">make -j2 VERBOSE=1</span>
+<span class="pi">-</span> <span class="s">./test_antlr</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>And that’s it! You are now ready to integrate those beautiful grammars into your C++11 projects!</p>
+
+<p>Please send any feedback to <a href="mailto:blorente@ucm.es">blorente@ucm.es</a>, and I’ll try to answer as fast as possible.</p>
+
+<h2 id="get-the-full-source-code"><a href="https://github.com/blorente/antlr-4.7-cpp-cmake-base">GET THE FULL SOURCE CODE</a></h2>
+:ET
