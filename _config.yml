@@ -1,29 +1,38 @@
-# top level stuff you probably don't need to touch
-highlighter: pygments
-markdown: kramdown
-permalink: /:title.html
-paginate: 5
-gems: [jekyll-paginate]
-port: 3000
-safe: true
-
-
-# edit here to achieve your personal greatness
-url: http://blorente.me/
-#baseurl: http://blorente.me/
-title: Borja Lorente
-author: Borja Lorente
-description: Personal blog and portfolio
-avatar: profile_med.jpg
+# Site settings
+title: "Borja Lorente"
 email: blorente.me@gmail.com
-github: blorente
-twitter: BLorenteEs
-linkedin: blorente
-stackoverflow: users/7368738/borja-lorente-escobar   #e.g: users/2735833/proton1h1
-#Comment out if you don't want disqus
-disqus: blorente-me
-google_analytics: UA-69391421-1
+description: "Blog and Portfolio of Borja Lorente Escobar"
+baseurl: ""
+url: "http://blorente.me/"
+title_description: "Software Engineer and Programming Language enthusiast.\nI love making the lives of my fellow programmers easier."
+title_image: "https://pbs.twimg.com/profile_images/1155229690992500736/P_aQccar_400x400.jpg"
+google_analytics: "UA-153119910-1"
+disqus_account: blorente-me
+github_repository: https://github.com/blorente/blorente.github.io
+addthis_id: ra-513c6fa83da6ec67
+post_limit: 5
 
+# Social usernames/URLs
+twitter_username: BLorenteEs
+github_username:  blorente
+#instagram_username: 
+#reddit_username: 
+#linkedin_link: http://carte-noire.jacobtomlinson.co.uk/
+#google_plus_link: http://carte-noire.jacobtomlinson.co.uk/
+#stackoverflow_link: http://carte-noire.jacobtomlinson.co.uk/
+#xing_link:
+#facebook_link:
 
-# needed for travis-ci build
+# Footer
+footer_left: "Theme made with <i class=\"fa fa-heart\"></i> by <a href=\"https://twitter.com/_JacobTomlinson\">Jacob Tomlinson</a>"
+footer_right: "&lt;/&gt; on <a href=\"https://github.com/jacobtomlinson/carte-noire\">Github</a> &nbsp;<i class=\"fa fa-github-alt\"></i>"
+
+# Build settings
+markdown: kramdown
+
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+permalink: pretty
 exclude: [vendor]
