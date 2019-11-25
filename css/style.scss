@@ -21,7 +21,7 @@ $dark:           #2D2D29;
 $medium:         #3B3B35;
 $light-medium:   #969696;
 $dark-blue:      #215A6D;
-$light-purple:     #814CB7;
+$light-purple:     rgb(183, 149, 218);
 $green:          #92C7A3;
 $light:          #DFECE6;
 $white:          #FFFFFF;
@@ -256,7 +256,7 @@ ul {
 	}
 
 	.author-header {
-		font-family: 'Montserrat', sans-serif;
+		font-family: Open Sans, MundoSans, "Helvetica Neue", Arial, Helvetica, sans-serif;
 		color: $light-purple;
 		margin-top: 0px;
 		padding-top: 15px;
@@ -284,10 +284,12 @@ ul {
 	.gravatar {
 		width: 100%;
 		margin-top: -80px;
+		margin-bottom: 30px;
 		text-align: center;
 	}
 
 	.author-text {
+		font-family: Open Sans, MundoSans, "Helvetica Neue", Arial, Helvetica, sans-serif;
 		text-align: justify;
 		margin-top: 30px;
 
