@@ -1,10 +1,10 @@
 # Site settings
-title: "Level Up Coder"
+title: "Borja Lorente"
 email: blorente.me@gmail.com
 description: "Blog and Portfolio of Borja Lorente Escobar"
 baseurl: ""
 url: "http://blorente.me/"
-title_description: "I'm Borja Lorente, a Software Engineer and Programming Language enthusiast. I love making the lives of my fellow programmers easier. Contact me via email (blorente.me@gmail.com), or via one of the socials down below."
+title_description: "Software Engineer and Programming Language enthusiast.\nI love making the lives of my fellow programmers easier."
 title_image: "https://pbs.twimg.com/profile_images/1155229690992500736/P_aQccar_400x400.jpg"
 google_analytics: "UA-153119910-1"
 disqus_account: blorente-me
