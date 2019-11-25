@@ -5,7 +5,7 @@ description: "Blog and Portfolio of Borja Lorente Escobar"
 baseurl: ""
 url: "http://blorente.me/"
 title_description: "Software Engineer and Programming Language enthusiast.\nI love making the lives of my fellow programmers easier. Check out some of my <a href=\"{{ site.baseurl }}/portfolio\">projects!</a>"
-title_image: "https://pbs.twimg.com/profile_images/1155229690992500736/P_aQccar_400x400.jpg"
+title_image: "http://blorente.me/assets/img/profile-image.jpeg"
 google_analytics: "UA-153119910-1"
 disqus_account: blorente-me
 github_repository: https://github.com/blorente/blorente.github.io
