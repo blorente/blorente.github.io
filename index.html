@@ -15,39 +15,21 @@ make-smaller-titles: true
 
             <h1 class="header author-header" itemprop="headline">{{ site.title }}</h1>
 
-            <div class="author-text">
+          
+            <h2 class="header author-subheader">
                 {{ site.title_description }}
+            </h2>
+            <div class="author-text">
+               
                 <p></p>
                 <p>Have a look at some of my previous <strong><a href="{{ site.url }}projects/"> projects</a></strong>,
-                or browse through my blog, <strong><a href="{{ site.url }}level-up-coder">Level Up Coder</a></strong>!</p>
+                or browse through my blog, <strong><a href="{{ site.url }}beyond-the-loop">Beyond the Loop</a></strong>!</p>
             </div>
 
 
 
             {% include social_links.html %}
           </div>
-          <!-- <div class="col-md-12 main content-panel">
-
-            <div class="articles">
-
-              <h2>Latest Articles</h2>
-
-              <ul>
-                  {% for post in site.posts limit: site.post_limit %}
-
-                      <li>
-                          <a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-                          <small class="hidden-xs">{{ post.date | date: "%B %-d, %Y" }}</small>
-                      </li>
-
-                  {% endfor %}
-                  <li>
-                      <small><i><a href="{{ site.baseurl }}/posts/">more...</a></i></small>
-                  </li>
-              </ul>
-
-            </div> -->
-
         </div>
 
     </div>
